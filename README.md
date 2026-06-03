@@ -12,7 +12,9 @@
 
 ![Vista general de OrgaLife](./public/screenshots/hero.png)
 
-<video src="public/media/demo.mp4" controls width="100%"></video>
+[![Ver demo en video](./public/screenshots/hero.png)](https://github.com/mgdev02/OrgaLife/raw/main/public/media/demo.mp4)
+
+**[▶ Ver demo en video (MP4)](https://github.com/mgdev02/OrgaLife/raw/main/public/media/demo.mp4)** — se abre en el navegador con reproductor.
 
 | Finanzas por consola |
 | --- |
