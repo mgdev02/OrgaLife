@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-native-platform"
+description = "Permite leer la plataforma nativa desde el frontend."
+commands.allow = ["native_platform"]

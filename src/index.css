@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@layer base {
+  html,
+  body,
+  #root {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  button,
+  [type="button"],
+  [type="submit"],
+  [type="reset"],
+  [type="checkbox"],
+  [type="radio"],
+  [role="button"],
+  select,
+  summary {
+    cursor: pointer;
+  }
+
+  input[type="text"],
+  input[type="search"],
+  input[type="password"],
+  input[type="email"],
+  input[type="url"],
+  input[type="number"],
+  textarea {
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  button:disabled,
+  [disabled] {
+    cursor: not-allowed;
+  }
+}
+
+.enable-selection {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Tauri v2: región de arrastre nativa (sin -webkit-app-region) */
+[data-tauri-drag-region] {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+/* Range slider — dark mode, uses --range-color from inline style */
+.range-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  outline: none;
+  cursor: pointer;
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: var(--range-color, #6366f1);
+  border: 2px solid #0c0c0f;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.range-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: var(--range-color, #6366f1);
+  border: 2px solid #0c0c0f;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
