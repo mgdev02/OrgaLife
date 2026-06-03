@@ -15,13 +15,13 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/mgdev02/OrgaLife/releases/download/media-demo/demo-web.mp4">
+  <a href="https://github.com/mgdev02/OrgaLife/blob/main/public/media/demo.mp4">
     <img src="./public/media/demo-poster.jpg" alt="Ver demo en video" width="900" />
   </a>
 </p>
 
 <p align="center">
-  <strong><a href="https://github.com/mgdev02/OrgaLife/releases/download/media-demo/demo-web.mp4">▶ Reproducir demo</a></strong> (~72 s, se abre en el navegador con reproductor)
+  <strong><a href="https://github.com/mgdev02/OrgaLife/blob/main/public/media/demo.mp4">▶ Reproducir demo</a></strong> (~72 s) — abre la página del archivo con reproductor; usá <strong>Reproducir</strong> arriba del preview, no el botón <strong>Download</strong>.
 </p>
 
 <p align="center">
