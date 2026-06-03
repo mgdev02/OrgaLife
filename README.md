@@ -91,4 +91,4 @@ git push -u origin main
 
 ## Licencia
 
-Añadí el archivo `LICENSE` que corresponda antes de publicar si querés definir términos de uso explícitos.
+Este proyecto está bajo la Licencia MIT. Para más detalles, consulta el archivo [LICENSE](LICENSE).
