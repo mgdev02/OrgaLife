@@ -8,6 +8,16 @@
 
 **macOS:** el build de producción usa compilación **unsigned** local (`TAURI_SKIP_SIGNING=true`), adecuada para desarrollo y uso personal sin certificado de Apple Developer. Para distribución pública firmada, configurá firma de código por separado (no incluida en este repositorio).
 
+## Vista previa
+
+![Vista general de OrgaLife](./public/screenshots/hero.png)
+
+<video src="public/media/demo.mp4" controls width="100%"></video>
+
+| Finanzas por consola |
+| --- |
+| ![Panel de finanzas](./public/screenshots/finance.png) |
+
 ## Requisitos
 
 - Node.js 20+
