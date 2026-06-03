@@ -2,7 +2,9 @@
 
 [![Repository](https://img.shields.io/badge/GitHub-mgdev02%2FOrgaLife-181717?logo=github)](https://github.com/mgdev02/OrgaLife)
 
-**OrgaLife** es una herramienta de escritorio nativa para organización personal: inbox de tareas, notas diarias, seguimiento académico, finanzas con consola de comandos y carga semanal. Está pensada como panel de productividad en macOS, con ventana overlay, atajo global para mostrar/ocultar y datos guardados localmente en el navegador embebido (sin backend en la nube).
+**OrgaLife** es una herramienta de escritorio nativa para organización personal: inbox de tareas, notas diarias, seguimiento académico, finanzas con consola de comandos y carga semanal. Está pensada como panel de productividad en macOS, con ventana overlay y datos guardados localmente en el navegador embebido (sin backend en la nube).
+
+**Atajo global (macOS):** `⌘ Command` + `⌥ Option` + `O` — muestra u oculta la ventana (minimizar al segundo plano sin cerrar la app). El botón rojo de cerrar también oculta la ventana; la app sigue en el Dock.
 
 **Stack:** [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/) · [Tailwind CSS v4](https://tailwindcss.com/) · [Vite 8](https://vite.dev/) · [Tauri v2](https://v2.tauri.app/) (Rust).
 
@@ -12,16 +14,6 @@
 
 <p align="center">
   <img src="./public/screenshots/hero.png" alt="Vista general de OrgaLife" width="900" />
-</p>
-
-<p align="center">
-  <a href="https://github.com/mgdev02/OrgaLife/blob/main/public/media/demo.mp4">
-    <img src="./public/media/demo-poster.jpg" alt="Ver demo en video" width="900" />
-  </a>
-</p>
-
-<p align="center">
-  <strong><a href="https://github.com/mgdev02/OrgaLife/blob/main/public/media/demo.mp4">▶ Reproducir demo</a></strong> (~72 s) — abre la página del archivo con reproductor; usá <strong>Reproducir</strong> arriba del preview, no el botón <strong>Download</strong>.
 </p>
 
 <p align="center">
