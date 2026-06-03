@@ -1,0 +1,20 @@
+[package]
+name = "orgalife"
+version = "1.0.0"
+description = "OrgaLife — Panel de organización personal"
+authors = ["Martin"]
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "orgalife_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+tauri = { version = "2", features = ["macos-private-api"] }
+tauri-plugin-global-shortcut = "2"
