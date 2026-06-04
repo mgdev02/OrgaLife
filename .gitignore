@@ -22,6 +22,9 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# OAuth Google (copiar desde credentials.example.rs en local)
+src-tauri/src/auth/credentials.rs
 *.local
 *.pem
 *.p12

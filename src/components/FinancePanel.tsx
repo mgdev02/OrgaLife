@@ -17,20 +17,19 @@ import usePersistedState from "../hooks/usePersistedState";
 import { parseFinanceCommand } from "../lib/parseFinanceCommand";
 import { revertTransactionBalances } from "../lib/revertTransactionBalances";
 import { whenLocked } from "../lib/whenLocked";
+import CurrencyInput from "./CurrencyInput";
+import { formatArs } from "../lib/currencyUtils";
+import {
+  sanitizeFinanceCommandTyping,
+  sanitizeLabelTyping,
+  sanitizeWalletCommandTyping,
+} from "../lib/inputUtils";
 
 interface Props {
   locked?: boolean;
 }
 
 type HistoryFilter = "all" | "in" | "out" | "transfer";
-
-function formatCurrency(n: number): string {
-  return n.toLocaleString("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    minimumFractionDigits: 0,
-  });
-}
 
 function txnInvolvesWallet(t: Transaction, walletId: string): boolean {
   return (
@@ -334,7 +333,7 @@ export default function FinancePanel({ locked = false }: Props) {
                       : "text-red-400/90"
                   }`}
                 >
-                  {formatCurrency(w.balance)}
+                  {formatArs(w.balance)}
                 </p>
                 <button
                   type="button"
@@ -370,7 +369,9 @@ export default function FinancePanel({ locked = false }: Props) {
                       type="text"
                       value={w.name}
                       onChange={(e) =>
-                        updateWallet(w.id, { name: e.target.value })
+                        updateWallet(w.id, {
+                          name: sanitizeLabelTyping(e.target.value),
+                        })
                       }
                       className="no-drag flex-1 rounded-lg border border-white/[0.06] bg-white/[0.03] px-2.5 py-1 text-sm text-neutral-300 outline-none transition-colors focus:border-white/[0.12]"
                     />
@@ -381,21 +382,17 @@ export default function FinancePanel({ locked = false }: Props) {
                         value={w.command}
                         onChange={(e) =>
                           updateWallet(w.id, {
-                            command: e.target.value
-                              .toLowerCase()
-                              .replace(/\s/g, ""),
+                            command: sanitizeWalletCommandTyping(e.target.value),
                           })
                         }
                         className="no-drag w-12 bg-transparent font-mono text-xs text-neutral-400 outline-none"
                       />
                     </div>
-                    <input
-                      type="number"
+                    <CurrencyInput
+                      allowNegative
                       value={w.balance}
-                      onChange={(e) =>
-                        updateWallet(w.id, { balance: Number(e.target.value) })
-                      }
-                      className="no-drag w-28 rounded-lg border border-white/[0.06] bg-white/[0.03] px-2.5 py-1 text-right font-mono text-sm text-neutral-300 outline-none transition-colors focus:border-white/[0.12]"
+                      onChange={(balance) => updateWallet(w.id, { balance })}
+                      className="no-drag w-36 rounded-lg border border-white/[0.06] bg-white/[0.03] px-2.5 py-1 text-right font-mono text-sm text-neutral-300 outline-none transition-colors focus:border-white/[0.12]"
                     />
                     <button
                       type="button"
@@ -441,7 +438,9 @@ export default function FinancePanel({ locked = false }: Props) {
             <input
               type="text"
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) =>
+                setDraft(sanitizeFinanceCommandTyping(e.target.value))
+              }
               onKeyDown={(e) => e.key === "Enter" && canSubmit && submit()}
               placeholder="+12000 !ef Sueldo · -4500 !ga !alquiler · >5000 !ef !mp"
               className={`no-drag cursor-text flex-1 rounded-lg border bg-white/[0.03] px-3 py-2 font-mono text-sm text-neutral-300 placeholder:text-neutral-700 outline-none transition-colors focus:border-white/[0.12] ${
@@ -582,8 +581,8 @@ export default function FinancePanel({ locked = false }: Props) {
                   }`}
                 >
                   {t.type === "transfer"
-                    ? formatCurrency(t.amount)
-                    : `${t.type === "in" ? "+" : "−"}${formatCurrency(t.amount)}`}
+                    ? formatArs(t.amount)
+                    : `${t.type === "in" ? "+" : "−"}${formatArs(t.amount)}`}
                 </span>
 
                 {!locked && (

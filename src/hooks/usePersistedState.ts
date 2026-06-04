@@ -19,6 +19,14 @@ function write<T>(key: string, value: T): void {
   }
 }
 
+type SyncNotify = (() => void) | null;
+
+let _syncNotify: SyncNotify = null;
+
+export function setSyncNotify(fn: SyncNotify): void {
+  _syncNotify = fn;
+}
+
 export default function usePersistedState<T>(
   key: string,
   fallback: T,
@@ -27,7 +35,14 @@ export default function usePersistedState<T>(
 
   useEffect(() => {
     write(key, state);
+    _syncNotify?.();
   }, [key, state]);
+
+  useEffect(() => {
+    const handlePull = () => setState(read(key, fallback));
+    window.addEventListener("orgalife:sync-pulled", handlePull);
+    return () => window.removeEventListener("orgalife:sync-pulled", handlePull);
+  }, [key, fallback]);
 
   const set = useCallback(
     (updater: T | ((prev: T) => T)) => setState(updater),

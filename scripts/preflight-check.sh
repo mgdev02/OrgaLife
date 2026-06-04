@@ -100,7 +100,12 @@ else
     fail "src-tauri/target/ NO está ignorado — revisá .gitignore"
   fi
 
-  tracked_heavy="$(git ls-files 2>/dev/null | grep -E '^(src-tauri/target/|node_modules/|dist/|\.env)' || true)"
+  tracked_heavy="$(
+    {
+      git ls-files 2>/dev/null | grep -E '^(src-tauri/target/|node_modules/|dist/)' || true
+      git ls-files 2>/dev/null | grep -E '^\.env' | grep -v '^\.env\.example$' || true
+    } | grep -v '^$' || true
+  )"
   if [[ -n "$tracked_heavy" ]]; then
     fail "Archivos pesados o sensibles ya trackeados por git:"
     echo "$tracked_heavy" | sed 's/^/    /'
@@ -109,11 +114,40 @@ else
     ok "Nada de target/, node_modules/, dist/ ni .env en el índice"
   fi
 
-  if git grep -l -E 'TAURI_SIGNING_PRIVATE_KEY|APPLE_API_KEY|BEGIN (RSA |OPENSSH )?PRIVATE KEY' -- ':!node_modules' ':!src-tauri/target' 2>/dev/null | head -5 | grep -q .; then
+  if git grep -l -E 'TAURI_SIGNING_PRIVATE_KEY=[^#\s]|APPLE_API_KEY=|BEGIN (RSA |OPENSSH )?PRIVATE KEY' -- ':!node_modules' ':!src-tauri/target' ':!.env.example' ':!scripts/preflight-check.sh' 2>/dev/null | head -5 | grep -q .; then
     fail "Posible secreto embebido en código — revisá: git grep -E 'PRIVATE KEY|TAURI_SIGNING'"
   else
     ok "Sin patrones obvios de claves en el código versionado"
   fi
+
+  if git ls-files --error-unmatch src-tauri/src/auth/credentials.rs &>/dev/null; then
+    fail "src-tauri/src/auth/credentials.rs está en el índice — quitá: git rm --cached src-tauri/src/auth/credentials.rs"
+  else
+    ok "credentials.rs no está trackeado (usá credentials.example.rs en el repo)"
+  fi
+
+  if git grep -l -E 'GOCSPX-|REPLACE_WITH_YOUR_CLIENT' -- ':!node_modules' ':!src-tauri/target' ':!*.example.rs' 2>/dev/null | grep -q .; then
+    fail "Posible Client Secret o placeholder de Google en archivos versionados"
+    git grep -n -E 'GOCSPX-|REPLACE_WITH_YOUR_CLIENT' -- ':!node_modules' ':!src-tauri/target' ':!*.example.rs' 2>/dev/null | head -5 | sed 's/^/    /' || true
+  else
+    ok "Sin secretos OAuth de Google en el código commiteado"
+  fi
+
+  if git grep -l -E '[0-9]{10,}-[a-z0-9]+\.apps\.googleusercontent\.com' -- ':!node_modules' ':!src-tauri/target' ':!*.example.rs' 2>/dev/null | grep -q .; then
+    fail "Posible Google Client ID real en archivos versionados"
+  else
+    ok "Sin Client ID de Google embebido en el repo"
+  fi
+fi
+
+if [[ -f src-tauri/src/auth/credentials.rs ]]; then
+  if grep -qE 'TU_CLIENT_|REPLACE_WITH' src-tauri/src/auth/credentials.rs 2>/dev/null; then
+    warn "credentials.rs local tiene placeholders — completá Client ID/Secret (ver README)"
+  else
+    ok "credentials.rs local configurado — debe permanecer fuera de git (.gitignore)"
+  fi
+else
+  warn "Falta src-tauri/src/auth/credentials.rs — copiá desde credentials.example.rs (ver README)"
 fi
 echo ""
 

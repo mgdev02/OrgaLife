@@ -7,6 +7,8 @@ import { whenLocked } from "../lib/whenLocked";
 interface Props {
   initialItems: InboxItem[];
   locked?: boolean;
+  /** En vista Todo: ocupa el alto restante de la columna (alineado con UBA). */
+  fillHeight?: boolean;
 }
 
 const PRIORITY_CYCLE: InboxItem["priority"][] = ["low", "medium", "high"];
@@ -34,7 +36,11 @@ function nextPriority(current: InboxItem["priority"]): InboxItem["priority"] {
   return PRIORITY_CYCLE[(idx + 1) % PRIORITY_CYCLE.length];
 }
 
-export default function WorkInbox({ initialItems, locked = false }: Props) {
+export default function WorkInbox({
+  initialItems,
+  locked = false,
+  fillHeight = false,
+}: Props) {
   const [items, setItems] = usePersistedState<InboxItem[]>("inbox_items", initialItems);
   const [draft, setDraft] = useState("");
 
@@ -68,21 +74,32 @@ export default function WorkInbox({ initialItems, locked = false }: Props) {
   };
 
   return (
-    <section className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-6">
-      <div className="mb-5 flex items-center gap-2.5">
+    <section
+      className={`rounded-2xl border border-white/[0.06] bg-white/[0.03] p-6 ${
+        fillHeight ? "flex min-h-0 flex-1 flex-col" : ""
+      }`}
+    >
+      <div className="mb-5 flex shrink-0 items-center gap-2.5">
         <Inbox className="h-4 w-4 text-neutral-500" />
         <h2 className="text-sm font-medium tracking-wide text-neutral-400 uppercase">
-          Inbox — Sistemas / Laburo
+          Tareas pendientes
         </h2>
       </div>
 
-      {items.length === 0 && (
-        <p className="py-4 text-center text-sm text-neutral-600 italic">
-          Sin pendientes — enfocate en el estudio.
-        </p>
-      )}
+      <div
+        className={
+          fillHeight ? "flex min-h-0 flex-1 flex-col" : "flex flex-col"
+        }
+      >
+        {items.length === 0 && (
+          <p className="py-4 text-center text-sm text-neutral-600 italic">
+            Sin pendientes — enfocate en el estudio.
+          </p>
+        )}
 
-      <ul className="space-y-1">
+        <ul
+          className={`space-y-1 ${fillHeight && items.length > 0 ? "min-h-0 flex-1 overflow-y-auto" : ""}`}
+        >
         {items.map((item) => (
           <li
             key={item.id}
@@ -108,21 +125,13 @@ export default function WorkInbox({ initialItems, locked = false }: Props) {
               {item.text}
             </span>
 
-            {locked ? (
-              <span
-                className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase ${PRIORITY_CHIP[item.priority]}`}
-              >
-                {item.priority}
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => cyclePriority(item.id)}
-                className={`cursor-pointer rounded px-1.5 py-0.5 text-[10px] font-medium uppercase transition-colors ${PRIORITY_BUTTON_STYLES[item.priority]}`}
-              >
-                {item.priority}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => cyclePriority(item.id)}
+              className={`cursor-pointer rounded px-1.5 py-0.5 text-[10px] font-medium uppercase transition-colors ${PRIORITY_BUTTON_STYLES[item.priority]}`}
+            >
+              {item.priority}
+            </button>
 
             {!locked && (
               <button
@@ -135,10 +144,9 @@ export default function WorkInbox({ initialItems, locked = false }: Props) {
             )}
           </li>
         ))}
-      </ul>
+        </ul>
 
-      {!locked && (
-        <div className="mt-3 flex gap-2">
+        <div className="mt-3 flex shrink-0 gap-2">
           <input
             type="text"
             value={draft}
@@ -155,7 +163,7 @@ export default function WorkInbox({ initialItems, locked = false }: Props) {
             <Plus className="h-3.5 w-3.5" />
           </button>
         </div>
-      )}
+      </div>
     </section>
   );
 }

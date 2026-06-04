@@ -1,0 +1,14 @@
+[[permission]]
+identifier = "allow-auth-commands"
+description = "Permite los comandos de autenticación OAuth2 y sincronización con Drive."
+commands.allow = [
+    "auth_start_login",
+    "auth_check_session",
+    "auth_logout",
+    "drive_sync_push",
+    "drive_sync_pull",
+    "drive_upload_attachment",
+    "drive_download_attachment",
+    "fetch_calendar_events",
+    "fetch_today_events",
+]

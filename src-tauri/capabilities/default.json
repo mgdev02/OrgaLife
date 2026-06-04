@@ -14,6 +14,7 @@
     "core:window:allow-start-dragging",
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
-    "allow-native-platform"
+    "allow-native-platform",
+    "allow-auth-commands"
   ]
 }

@@ -1,4 +1,5 @@
 import type { Wallet } from "../data/state";
+import { parseArsInput } from "./currencyUtils";
 
 const SPECIAL_TAGS = new Set(["ayer"]);
 
@@ -58,23 +59,41 @@ export function parseFinanceCommand(
   const isTransfer =
     trimmed.startsWith(">") || /^tr\b/i.test(trimmed);
 
-  let amountMatch: RegExpMatchArray | null;
+  let amountRaw: string | null = null;
+  let amountSignedNegative = false;
+
   if (isTransfer) {
-    amountMatch =
-      trimmed.match(/^>\s*(\d+(?:[.,]\d+)?)/) ??
-      trimmed.match(/^tr\s+(\d+(?:[.,]\d+)?)/i);
+    const transferBody = trimmed.startsWith(">")
+      ? trimmed.slice(1).trimStart()
+      : trimmed.replace(/^tr\s+/i, "");
+    const m = transferBody.match(/^([+-]?\s*\$?\s*)([\d.,]+)/);
+    if (m) {
+      amountSignedNegative = m[1].includes("-");
+      amountRaw = m[2];
+    }
   } else {
-    amountMatch = trimmed.match(/([+-]?\d+(?:[.,]\d+)?)/);
+    const m = trimmed.match(/^([+-]?\s*\$?\s*)([\d.,]+)/);
+    if (m) {
+      amountSignedNegative = m[1].startsWith("-");
+      amountRaw = m[2];
+    }
   }
 
-  if (!amountMatch) return { ok: false, error: "Sin monto detectado" };
+  if (!amountRaw) return { ok: false, error: "Sin monto detectado" };
 
-  const amount = parseFloat(amountMatch[1].replace(",", "."));
-  if (isNaN(amount) || amount === 0) return { ok: false, error: "Monto inválido" };
+  const parsedAmount = parseArsInput(amountRaw);
+  if (parsedAmount === null || parsedAmount === 0) {
+    return { ok: false, error: "Monto inválido" };
+  }
+
+  const amount = Math.abs(parsedAmount);
 
   const stripDescription = () => {
     let desc = trimmed;
-    desc = desc.replace(amountMatch![0], "");
+    if (isTransfer) {
+      desc = desc.replace(/^>\s*/, "").replace(/^tr\s+/i, "");
+    }
+    desc = desc.replace(/^([+-]?\s*\$?\s*)[\d.,]+/, "");
     if (isTransfer) {
       desc = desc.replace(/^>\s*/, "").replace(/^tr\s+/i, "");
     }
@@ -122,7 +141,7 @@ export function parseFinanceCommand(
   }
 
   const wallet = walletByCmd.get(walletTags[0])!;
-  const signedAmount = amountMatch[0].startsWith("-") || amount < 0;
+  const signedAmount = amountSignedNegative || parsedAmount < 0;
 
   return {
     ok: true,

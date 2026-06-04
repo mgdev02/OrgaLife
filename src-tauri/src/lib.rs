@@ -1,6 +1,11 @@
 use tauri::{Manager, WindowEvent};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
+mod auth;
+mod calendar;
+mod commands;
+mod drive;
+
 /// Plataforma compatible con `process.platform` de Electron (`darwin` | `win32` | `linux`).
 #[tauri::command]
 fn native_platform() -> String {
@@ -31,7 +36,18 @@ fn toggle_main_window(app: &tauri::AppHandle) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![native_platform])
+        .invoke_handler(tauri::generate_handler![
+            native_platform,
+            commands::auth_start_login,
+            commands::auth_check_session,
+            commands::auth_logout,
+            commands::drive_sync_push,
+            commands::drive_sync_pull,
+            commands::drive_upload_attachment,
+            commands::drive_download_attachment,
+            commands::fetch_calendar_events,
+            commands::fetch_today_events,
+        ])
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, _shortcut, event| {

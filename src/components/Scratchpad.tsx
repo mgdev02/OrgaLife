@@ -1,8 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { StickyNote, Trash2 } from "lucide-react";
 import usePersistedState from "../hooks/usePersistedState";
-
-const IDLE_MS = 800;
 
 interface DayEntry {
   text: string;
@@ -28,31 +26,20 @@ const DAY_OFFSETS = [0, 1, 2] as const;
 export default function Scratchpad() {
   const [store, setStore] = usePersistedState<ScratchpadStore>("scratchpad_v2", {});
   const [activeDay, setActiveDay] = useState(0);
-  const [typing, setTyping] = useState(false);
   const [showPurge, setShowPurge] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const purgeRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const key = dateKey(activeDay);
   const currentText = store[key]?.text ?? "";
 
-  const handleChange = useCallback(
-    (val: string) => {
-      setStore((prev) => ({
-        ...prev,
-        [key]: { text: val, lastModified: new Date().toISOString() },
-      }));
-      setTyping(true);
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => setTyping(false), IDLE_MS);
-    },
-    [key, setStore],
-  );
+  const handleChange = (val: string) => {
+    setStore((prev) => ({
+      ...prev,
+      [key]: { text: val, lastModified: new Date().toISOString() },
+    }));
+  };
 
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
-
-  // Close purge menu on outside click
   useEffect(() => {
     if (!showPurge) return;
     const handler = (e: MouseEvent) => {
@@ -91,14 +78,12 @@ export default function Scratchpad() {
 
   return (
     <section className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-6">
-      {/* Header row */}
       <div className="mb-4 flex items-center gap-2.5">
         <StickyNote className="h-4 w-4 text-neutral-500" />
         <h2 className="text-sm font-medium tracking-wide text-neutral-400 uppercase">
           Scratchpad
         </h2>
 
-        {/* Day tabs */}
         <div className="ml-3 flex rounded-md border border-white/[0.06] bg-white/[0.02] p-0.5">
           {DAY_OFFSETS.map((offset) => {
             const dk = dateKey(offset);
@@ -122,70 +107,54 @@ export default function Scratchpad() {
           })}
         </div>
 
-        {/* Right-aligned: save indicator + purge */}
-        <div className="ml-auto flex items-center gap-2">
-          <span
-            className={`text-[10px] transition-all duration-300 ${
-              typing
-                ? "text-amber-500/70"
-                : currentText
-                  ? "text-emerald-600"
-                  : "text-neutral-800"
-            }`}
-          >
-            {typing ? "· Guardando..." : currentText ? "· Guardado" : ""}
-          </span>
+        {hasContent && (
+          <div className="relative ml-auto" ref={purgeRef}>
+            <button
+              type="button"
+              onClick={() => setShowPurge((v) => !v)}
+              className={`rounded p-1 transition-colors ${
+                showPurge
+                  ? "bg-white/[0.08] text-neutral-400"
+                  : "text-neutral-700 hover:bg-white/[0.04] hover:text-neutral-500"
+              }`}
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
 
-          {hasContent && (
-            <div className="relative" ref={purgeRef}>
-              <button
-                type="button"
-                onClick={() => setShowPurge((v) => !v)}
-                className={`rounded p-1 transition-colors ${
-                  showPurge
-                    ? "bg-white/[0.08] text-neutral-400"
-                    : "text-neutral-700 hover:bg-white/[0.04] hover:text-neutral-500"
-                }`}
-              >
-                <Trash2 className="h-3 w-3" />
-              </button>
-
-              {showPurge && (
-                <div className="absolute right-0 top-full z-50 mt-1.5 w-56 overflow-hidden rounded-xl border border-white/[0.08] bg-[#141417] shadow-2xl shadow-black/50">
-                  <div className="px-3 py-2 border-b border-white/[0.06]">
-                    <p className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">
-                      Borrar historial
-                    </p>
-                  </div>
-                  {(
-                    [
-                      ["1h", "Última hora"],
-                      ["24h", "Últimas 24 horas"],
-                      ["7d", "Últimos 7 días"],
-                      ["all", "Todo el historial"],
-                    ] as const
-                  ).map(([mode, label]) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => purge(mode)}
-                      className={`flex w-full items-center px-3 py-2 text-left text-xs transition-colors hover:bg-white/[0.04] ${
-                        mode === "all"
-                          ? "text-red-400/80 hover:text-red-400"
-                          : "text-neutral-400 hover:text-neutral-300"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
+            {showPurge && (
+              <div className="absolute right-0 top-full z-50 mt-1.5 w-56 overflow-hidden rounded-xl border border-white/[0.08] bg-[#141417] shadow-2xl shadow-black/50">
+                <div className="px-3 py-2 border-b border-white/[0.06]">
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">
+                    Borrar historial
+                  </p>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
+                {(
+                  [
+                    ["1h", "Última hora"],
+                    ["24h", "Últimas 24 horas"],
+                    ["7d", "Últimos 7 días"],
+                    ["all", "Todo el historial"],
+                  ] as const
+                ).map(([mode, label]) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => purge(mode)}
+                    className={`flex w-full items-center px-3 py-2 text-left text-xs transition-colors hover:bg-white/[0.04] ${
+                      mode === "all"
+                        ? "text-red-400/80 hover:text-red-400"
+                        : "text-neutral-400 hover:text-neutral-300"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Textarea */}
       <textarea
         ref={textareaRef}
         value={currentText}
