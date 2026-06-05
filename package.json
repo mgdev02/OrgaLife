@@ -1,7 +1,7 @@
 {
   "name": "facu",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,11 +10,13 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "TAURI_SKIP_SIGNING=true tauri build",
+    "tauri:build": "bash scripts/tauri-build.sh",
     "preflight": "bash scripts/preflight-check.sh"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.11.0",
+    "@tauri-apps/plugin-process": "^2.3.1",
+    "@tauri-apps/plugin-updater": "^2.10.1",
     "lucide-react": "^1.17.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"

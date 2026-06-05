@@ -7,7 +7,11 @@ pub fn safe_drive_name(original: &str) -> String {
         .filter(|c| c.is_alphanumeric() || *c == '.' || *c == '-' || *c == '_')
         .take(80)
         .collect();
-    let stem = if clean.is_empty() { "comprobante" } else { clean.as_str() };
+    let stem = if clean.is_empty() {
+        "comprobante"
+    } else {
+        clean.as_str()
+    };
     format!("orgalife_receipt_{stem}")
 }
 

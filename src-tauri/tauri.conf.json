@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "OrgaLife",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "identifier": "com.orgalife.app",
   "build": {
     "frontendDist": "../dist",
@@ -37,6 +37,7 @@
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": "all",
     "icon": [
       "icons/32x32.png",
@@ -53,5 +54,14 @@
       }
     },
     "category": "Productivity"
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQzQURBODAzQTY3RDQ2MzgKUldRNFJuMm1BNml0UTkvK2ovT0JZNEN6ZzU1ZFIxekZqZFQ3OFFGQkVwRHlyblRMTGlHeW9BNFcK",
+      "endpoints": [
+        "https://github.com/mgdev02/OrgaLife/releases/latest/download/latest.json"
+      ],
+      "dialog": false
+    }
   }
 }

@@ -36,6 +36,8 @@ fn toggle_main_window(app: &tauri::AppHandle) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             native_platform,
             commands::auth_start_login,
@@ -58,8 +60,7 @@ pub fn run() {
                 .build(),
         )
         .setup(|app| {
-            let shortcut =
-                Shortcut::new(Some(Modifiers::SUPER | Modifiers::ALT), Code::KeyO);
+            let shortcut = Shortcut::new(Some(Modifiers::SUPER | Modifiers::ALT), Code::KeyO);
             app.global_shortcut().register(shortcut)?;
 
             Ok(())
@@ -72,18 +73,19 @@ pub fn run() {
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|app_handle, event| {
-            match event {
-                #[cfg(target_os = "macos")]
-                tauri::RunEvent::Reopen { has_visible_windows, .. } => {
-                    if !has_visible_windows {
-                        if let Some(window) = app_handle.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
+        .run(|app_handle, event| match event {
+            #[cfg(target_os = "macos")]
+            tauri::RunEvent::Reopen {
+                has_visible_windows,
+                ..
+            } => {
+                if !has_visible_windows {
+                    if let Some(window) = app_handle.get_webview_window("main") {
+                        let _ = window.show();
+                        let _ = window.set_focus();
                     }
                 }
-                _ => {}
             }
+            _ => {}
         });
 }

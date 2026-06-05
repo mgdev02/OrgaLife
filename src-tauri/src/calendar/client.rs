@@ -3,8 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::auth::oauth;
 
-const CALENDAR_EVENTS_URL: &str =
-    "https://www.googleapis.com/calendar/v3/calendars/primary/events";
+const CALENDAR_EVENTS_URL: &str = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -159,10 +158,7 @@ fn parse_event_times(
     }
 
     if let Some(start_dt) = &start.date_time {
-        let end_dt = end
-            .date_time
-            .as_deref()
-            .unwrap_or(start_dt.as_str());
+        let end_dt = end.date_time.as_deref().unwrap_or(start_dt.as_str());
         return Ok((start_dt.clone(), end_dt.to_string(), false));
     }
 

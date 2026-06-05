@@ -137,7 +137,7 @@ npm run dev
 npm run tauri:build
 ```
 
-Usa `TAURI_SKIP_SIGNING=true` cuando no hay certificado de Apple.
+Usa `TAURI_SKIP_SIGNING=true` cuando no hay certificado de Apple. El script también firma los artefactos del **updater** con la clave en `~/.tauri/orgalife.key` (generada una vez con `npx tauri signer generate --write-keys ~/.tauri/orgalife.key`).
 
 ### Artefactos generados
 
@@ -145,8 +145,55 @@ Usa `TAURI_SKIP_SIGNING=true` cuando no hay certificado de Apple.
 |------|------|
 | App bundle | `src-tauri/target/release/bundle/macos/OrgaLife.app` |
 | Instalador DMG | `src-tauri/target/release/bundle/dmg/` |
+| Paquete updater (`.tar.gz` + `.sig`) | `src-tauri/target/release/bundle/macos/` |
 
 Estas rutas están en `.gitignore` y **no deben subirse** a GitHub.
+
+## Actualizaciones automáticas (in-app)
+
+Desde **v1.1.0**, la app consulta GitHub Releases al iniciar y cada 6 horas. Si hay una versión más nueva, el subheader muestra **«Nueva versión disponible»** junto a `vX.Y.Z` y un botón **Actualizar** que descarga, instala y reinicia la app — sin desinstalar ni volver a abrir el DMG.
+
+### Primera vez con updater
+
+Si tenés instalada **v1.0.0** (sin updater), instalá **una vez** el DMG de **v1.1.0** o superior. A partir de ahí, las versiones siguientes se aplican desde la app.
+
+### Publicar una nueva versión
+
+1. **Subí la versión** en los tres archivos (mismo número semver):
+   - `package.json` → `"version"`
+   - `src-tauri/tauri.conf.json` → `"version"`
+   - `src-tauri/Cargo.toml` → `version`
+2. **Compilá** con la clave de firma del updater:
+   ```bash
+   export TAURI_SIGNING_PRIVATE_KEY_PATH="$HOME/.tauri/orgalife.key"
+   npm run tauri:build
+   ```
+3. **Publicá en GitHub** (opción A — local + manual, opción B — CI):
+
+   **A) Release manual:** creá un release en [mgdev02/OrgaLife](https://github.com/mgdev02/OrgaLife) con tag `v1.2.0` (ejemplo) y subí:
+   - el `.dmg`
+   - `OrgaLife.app.tar.gz` y `OrgaLife.app.tar.gz.sig`
+   - `latest.json` (o usá `tauri-apps/tauri-action`, que lo genera solo)
+
+   **B) GitHub Actions:** configurá estos secrets en el repo y pusheá un tag `v*`:
+   | Secret | Uso |
+   |--------|-----|
+   | `TAURI_SIGNING_PRIVATE_KEY` | Contenido de `~/.tauri/orgalife.key` |
+   | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Solo si la clave tiene contraseña |
+   | `GOOGLE_CLIENT_ID` | OAuth (mismo valor que en `credentials.rs`) |
+   | `GOOGLE_CLIENT_SECRET` | OAuth |
+
+   ```bash
+   git tag v1.2.0
+   git push origin v1.2.0
+   ```
+
+   El workflow `.github/workflows/release.yml` compila para Apple Silicon e Intel, genera `latest.json` y deja el release en borrador para revisar.
+
+### Clave del updater
+
+- **Pública** (`~/.tauri/orgalife.key.pub`): ya está embebida en `tauri.conf.json`; podés compartirla.
+- **Privada** (`~/.tauri/orgalife.key`): **nunca** la subas a GitHub. Si la perdés, no podrás publicar updates para usuarios que ya tienen la app instalada.
 
 ## Publicar en GitHub de forma segura
 
@@ -197,3 +244,37 @@ git push -u origin main
 ## Licencia
 
 Este proyecto está bajo la Licencia MIT. Ver [LICENSE](LICENSE).
+
+## Memoria persistente (Memanto)
+
+OrgaLife puede usar [Memanto](https://github.com/moorcheh-ai/memanto) para que el agente de Cursor recuerde preferencias y decisiones entre sesiones.
+
+### Configuración (una vez, en tu Mac)
+
+```bash
+# CLI + MCP (si no los tenés)
+pipx install memanto memanto-mcp
+
+# API key de Moorcheh (gratis: https://console.moorcheh.ai/api-keys)
+memanto
+
+# Integración Cursor en todos los proyectos
+memanto connect cursor --global
+
+# Integración en este repo
+memanto connect cursor --project-dir .
+
+# Agente de memoria para OrgaLife
+memanto agent create orgalife
+memanto agent activate orgalife
+```
+
+La API key queda en `~/.memanto/.env` (no se commitea). El MCP global está en `~/.cursor/mcp.json`; este proyecto usa el agente `orgalife` vía `.cursor/mcp.json`.
+
+Antes de trabajar en el repo:
+
+```bash
+memanto memory sync --project-dir .
+```
+
+Recargá Cursor (o reiniciá) para que aparezca el servidor MCP **memanto** con las herramientas `remember`, `recall` y `answer`.

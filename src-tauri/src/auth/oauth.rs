@@ -196,25 +196,22 @@ pub async fn start_login() -> Result<UserProfile, String> {
     let tokens = exchange_code(&code, &redirect_uri, &verifier).await?;
 
     let expires_at = now_secs() + tokens.expires_in;
-    let refresh = tokens
-        .refresh_token
-        .as_deref()
-        .unwrap_or("");
+    let refresh = tokens.refresh_token.as_deref().unwrap_or("");
 
     keyring_store::store_auth_tokens(&tokens.access_token, refresh, expires_at)?;
 
     let profile = fetch_user_profile(&tokens.access_token).await?;
 
-    let profile_json = serde_json::to_string(&profile)
-        .map_err(|e| format!("profile serialize error: {e}"))?;
+    let profile_json =
+        serde_json::to_string(&profile).map_err(|e| format!("profile serialize error: {e}"))?;
     keyring_store::store_token("user_profile", &profile_json)?;
 
     Ok(profile)
 }
 
 pub async fn refresh_access_token() -> Result<String, String> {
-    let refresh_token = keyring_store::get_refresh_token()?
-        .ok_or_else(|| "no refresh token stored".to_string())?;
+    let refresh_token =
+        keyring_store::get_refresh_token()?.ok_or_else(|| "no refresh token stored".to_string())?;
 
     let client = reqwest::Client::new();
 
@@ -250,8 +247,8 @@ pub async fn refresh_access_token() -> Result<String, String> {
 
 /// Devuelve un access_token válido, renovándolo si expiró.
 pub async fn get_valid_access_token() -> Result<String, String> {
-    let token = keyring_store::get_access_token()?
-        .ok_or_else(|| "not authenticated".to_string())?;
+    let token =
+        keyring_store::get_access_token()?.ok_or_else(|| "not authenticated".to_string())?;
 
     let expires_at = keyring_store::get_expires_at()?.unwrap_or(0);
 
@@ -268,8 +265,8 @@ pub fn check_session() -> Result<Option<UserProfile>, String> {
         None => return Ok(None),
     };
 
-    let profile: UserProfile = serde_json::from_str(&profile_json)
-        .map_err(|e| format!("profile parse error: {e}"))?;
+    let profile: UserProfile =
+        serde_json::from_str(&profile_json).map_err(|e| format!("profile parse error: {e}"))?;
 
     Ok(Some(profile))
 }

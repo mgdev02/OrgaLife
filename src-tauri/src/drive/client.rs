@@ -190,9 +190,7 @@ impl DriveClient {
         let boundary = "orgalife_upload_boundary";
         let mut body = Vec::new();
         body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
-        body.extend_from_slice(
-            b"Content-Type: application/json; charset=UTF-8\r\n\r\n",
-        );
+        body.extend_from_slice(b"Content-Type: application/json; charset=UTF-8\r\n\r\n");
         body.extend_from_slice(metadata.to_string().as_bytes());
         body.extend_from_slice(format!("\r\n--{boundary}\r\n").as_bytes());
         body.extend_from_slice(format!("Content-Type: {mime_type}\r\n\r\n").as_bytes());
@@ -254,10 +252,7 @@ impl DriveClient {
             .map_err(|e| format!("drive download read error: {e}"))
     }
 
-    pub async fn get_file_meta(
-        &self,
-        file_id: &str,
-    ) -> Result<(String, String), String> {
+    pub async fn get_file_meta(&self, file_id: &str) -> Result<(String, String), String> {
         let token = self.token().await?;
 
         #[derive(serde::Deserialize)]

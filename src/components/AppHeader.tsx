@@ -1,7 +1,7 @@
 import { Calendar, Lock, Unlock, LogOut } from "lucide-react";
 import { useNativePlatform } from "../hooks/useNativePlatform";
-import { APP_VERSION } from "../lib/appVersion";
 import SyncIndicator from "./SyncIndicator";
+import VersionBadge from "./VersionBadge";
 import { GoogleCalendarIcon, GoogleDriveIcon } from "./GoogleServiceIcons";
 import type { UserProfile } from "../types/auth";
 import type { SyncStatus } from "../types/sync";
@@ -115,12 +115,7 @@ export default function AppHeader({
           <span className="truncate capitalize">{currentDateLabel()}</span>
         </div>
 
-        <span
-          data-tauri-drag-region=""
-          className="shrink-0 text-[10px] font-medium tabular-nums tracking-wide text-neutral-600"
-        >
-          v{APP_VERSION}
-        </span>
+        <VersionBadge />
 
         <div className="flex justify-end">
           <AccountSubheader

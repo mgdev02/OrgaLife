@@ -25,6 +25,9 @@ coverage/
 
 # OAuth Google (copiar desde credentials.example.rs en local)
 src-tauri/src/auth/credentials.rs
+
+# Memanto — memoria local del agente (generado por memanto memory sync)
+MEMORY.md
 *.local
 *.pem
 *.p12
