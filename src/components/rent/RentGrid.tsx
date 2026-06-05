@@ -246,7 +246,7 @@ export default function RentGrid({
                   )}
                 </div>
 
-                {!locked ? (
+                {!locked && !li.autoCalculated ? (
                   <CurrencyInput
                     data-tauri-no-drag=""
                     value={li.amount}
@@ -257,7 +257,14 @@ export default function RentGrid({
                     className="w-32 rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-right text-sm text-neutral-300 outline-none transition-colors focus:border-white/[0.14]"
                   />
                 ) : (
-                  <span className="text-sm text-neutral-400">
+                  <span
+                    className={`text-sm ${li.autoCalculated ? "text-neutral-500" : "text-neutral-400"}`}
+                    title={
+                      li.autoCalculated
+                        ? "Calculado automáticamente según el alquiler del mes"
+                        : undefined
+                    }
+                  >
                     {formatArs(li.amount)}
                   </span>
                 )}

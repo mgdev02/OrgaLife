@@ -110,6 +110,28 @@ export function clampContractDurationYears(years: number): number {
   return Math.min(10, Math.round(years));
 }
 
+export function clampAgencyCommissionPercent(percent: number): number {
+  if (Number.isNaN(percent) || percent < 0) return 0;
+  return Math.min(100, Math.round(percent * 100) / 100);
+}
+
+export function agencyCommissionAmount(
+  baseRent: number,
+  percent: number,
+): number {
+  const p = clampAgencyCommissionPercent(percent);
+  if (baseRent <= 0 || p <= 0) return 0;
+  return Math.round((baseRent * p) / 100);
+}
+
+export function formatPercentDisplay(percent: number): string {
+  if (percent <= 0) return "";
+  const rounded = clampAgencyCommissionPercent(percent);
+  const text =
+    rounded % 1 === 0 ? String(rounded) : rounded.toFixed(2).replace(/\.?0+$/, "");
+  return text.replace(".", ",");
+}
+
 export function listRentMonths(
   contractStart: string,
   contractDurationYears = 2,
@@ -197,6 +219,8 @@ export interface RentLineItem {
   /** Si este mes conviene actualizar el monto según el índice. */
   increaseHint?: string;
   increaseIndex?: IncreaseIndex;
+  /** Monto derivado (no editable en la grilla). */
+  autoCalculated?: boolean;
 }
 
 export function getMonthAmount(
@@ -248,15 +272,17 @@ export function buildLineItemsForMonth(
   );
   const rentAlreadyUpdated = state.monthAmounts[month]?.rent !== undefined;
   const indexLabel = INCREASE_INDEX_LABELS[state.rentIncreaseIndex];
+  const baseRent = getMonthAmount(
+    state,
+    month,
+    "rent",
+    resolveDefaultRent(state, month),
+  );
+
   items.push({
     target: "rent",
     label: "Alquiler",
-    amount: getMonthAmount(
-      state,
-      month,
-      "rent",
-      resolveDefaultRent(state, month),
-    ),
+    amount: baseRent,
     increaseHint: rentIncrease
       ? rentAlreadyUpdated
         ? `Ajustar según ${indexLabel}`
@@ -264,6 +290,18 @@ export function buildLineItemsForMonth(
       : undefined,
     increaseIndex: rentIncrease ? state.rentIncreaseIndex : undefined,
   });
+
+  if (state.withAgencyCommission) {
+    const pct = clampAgencyCommissionPercent(state.agencyCommissionPercent);
+    if (pct > 0) {
+      items.push({
+        target: "agency_commission",
+        label: `Comisión inmobiliaria (${formatPercentDisplay(pct) || pct}%)`,
+        amount: agencyCommissionAmount(baseRent, pct),
+        autoCalculated: true,
+      });
+    }
+  }
 
   if (state.withExpenses) {
     items.push({
@@ -388,6 +426,10 @@ export function migrateRentState(raw: RentState): RentState {
   return {
     contractStart: raw.contractStart ?? "",
     monthlyRent: raw.monthlyRent ?? 0,
+    withAgencyCommission: raw.withAgencyCommission ?? false,
+    agencyCommissionPercent: clampAgencyCommissionPercent(
+      raw.agencyCommissionPercent ?? 5,
+    ),
     rentIncreaseIndex: raw.rentIncreaseIndex ?? "icl",
     rentIncreaseMonths:
       raw.rentIncreaseMonths ??

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { listen } from "@tauri-apps/api/event";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { isNativeShell } from "../lib/nativeAPI";
@@ -8,10 +9,14 @@ export type UpdaterStatus =
   | "checking"
   | "available"
   | "downloading"
-  | "ready"
   | "error";
 
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
+const AUTO_CHECK_COOLDOWN_MS = 2 * 60 * 1000;
+
+type CheckOptions = {
+  force?: boolean;
+};
 
 export function useAppUpdater() {
   const [status, setStatus] = useState<UpdaterStatus>("idle");
@@ -19,11 +24,23 @@ export function useAppUpdater() {
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const pendingUpdate = useRef<Update | null>(null);
+  const busyRef = useRef(false);
+  const lastAutoCheckRef = useRef(0);
   const isDesktop = isNativeShell();
 
-  const checkForUpdate = useCallback(async () => {
+  const checkForUpdate = useCallback(async (opts?: CheckOptions) => {
     if (!isNativeShell()) return;
+    if (busyRef.current) return;
 
+    const force = opts?.force === true;
+    if (
+      !force &&
+      Date.now() - lastAutoCheckRef.current < AUTO_CHECK_COOLDOWN_MS
+    ) {
+      return;
+    }
+
+    busyRef.current = true;
     setStatus("checking");
     setError(null);
 
@@ -43,13 +60,17 @@ export function useAppUpdater() {
       setAvailableVersion(null);
       console.debug("[updater] check failed:", err);
       setStatus("idle");
+    } finally {
+      busyRef.current = false;
+      if (!force) lastAutoCheckRef.current = Date.now();
     }
   }, []);
 
   const installUpdate = useCallback(async () => {
     const update = pendingUpdate.current;
-    if (!update) return;
+    if (!update || busyRef.current) return;
 
+    busyRef.current = true;
     setStatus("downloading");
     setProgress(null);
     setError(null);
@@ -76,31 +97,42 @@ export function useAppUpdater() {
         }
       });
 
-      setStatus("ready");
+      await relaunch();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al instalar");
-      setStatus("error");
+      setStatus("available");
+      busyRef.current = false;
     }
-  }, []);
-
-  const restartApp = useCallback(async () => {
-    await relaunch();
-  }, []);
-
-  const resetAfterError = useCallback(() => {
-    setError(null);
-    setProgress(null);
-    setStatus(pendingUpdate.current ? "available" : "idle");
   }, []);
 
   useEffect(() => {
     if (!isDesktop) return;
 
     const initial = window.setTimeout(() => void checkForUpdate(), 0);
-    const id = window.setInterval(() => void checkForUpdate(), CHECK_INTERVAL_MS);
+    const interval = window.setInterval(
+      () => void checkForUpdate(),
+      CHECK_INTERVAL_MS,
+    );
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        void checkForUpdate();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    let unlistenWindowShown: (() => void) | undefined;
+    void listen("orgalife:window-shown", () => {
+      void checkForUpdate();
+    }).then((unlisten) => {
+      unlistenWindowShown = unlisten;
+    });
+
     return () => {
       window.clearTimeout(initial);
-      window.clearInterval(id);
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+      unlistenWindowShown?.();
     };
   }, [isDesktop, checkForUpdate]);
 
@@ -112,7 +144,5 @@ export function useAppUpdater() {
     error,
     checkForUpdate,
     installUpdate,
-    restartApp,
-    resetAfterError,
   };
 }

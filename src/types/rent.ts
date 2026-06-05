@@ -26,6 +26,10 @@ export interface RentState {
   contractStart: string;
   /** Alquiler vigente al inicio (se actualiza mes a mes en la grilla). */
   monthlyRent: number;
+  /** Si aplica comisión de inmobiliaria sobre el alquiler de cada mes. */
+  withAgencyCommission: boolean;
+  /** Porcentaje de comisión (ej. 5 = 5 %). */
+  agencyCommissionPercent: number;
   rentIncreaseIndex: IncreaseIndex;
   /** Cada cuántos meses aplica una actualización IPC/ICL (desde inicio de contrato). */
   rentIncreaseMonths: number;
@@ -45,6 +49,8 @@ export interface RentState {
 export const INITIAL_RENT_STATE: RentState = {
   contractStart: "",
   monthlyRent: 0,
+  withAgencyCommission: false,
+  agencyCommissionPercent: 5,
   rentIncreaseIndex: "icl",
   rentIncreaseMonths: 6,
   contractDurationYears: 2,

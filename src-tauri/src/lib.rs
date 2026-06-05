@@ -1,4 +1,4 @@
-use tauri::{Manager, WindowEvent};
+use tauri::{Emitter, Manager, WindowEvent};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 mod auth;
@@ -16,6 +16,13 @@ fn native_platform() -> String {
     }
 }
 
+fn show_main_window(window: &tauri::WebviewWindow) {
+    let _ = window.show();
+    let _ = window.unminimize();
+    let _ = window.set_focus();
+    let _ = window.emit("orgalife:window-shown", ());
+}
+
 fn toggle_main_window(app: &tauri::AppHandle) {
     let Some(window) = app.get_webview_window("main") else {
         return;
@@ -27,9 +34,7 @@ fn toggle_main_window(app: &tauri::AppHandle) {
     if visible && focused {
         let _ = window.hide();
     } else {
-        let _ = window.show();
-        let _ = window.unminimize();
-        let _ = window.set_focus();
+        show_main_window(&window);
     }
 }
 
@@ -81,8 +86,7 @@ pub fn run() {
             } => {
                 if !has_visible_windows {
                     if let Some(window) = app_handle.get_webview_window("main") {
-                        let _ = window.show();
-                        let _ = window.set_focus();
+                        show_main_window(&window);
                     }
                 }
             }

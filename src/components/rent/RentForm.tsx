@@ -5,11 +5,13 @@ import IntegerInput from "../IntegerInput";
 import {
   INCREASE_INDEX_LABELS,
   INCREASE_INTERVAL_OPTIONS,
+  clampAgencyCommissionPercent,
   clampPaymentDeadlineDay,
   clampContractDurationYears,
   formatArs,
+  formatPercentDisplay,
 } from "../../lib/rentUtils";
-import { sanitizeLabelTyping } from "../../lib/inputUtils";
+import { sanitizeLabelTyping, sanitizePercentTyping } from "../../lib/inputUtils";
 
 const RENT_FIELD =
   "h-10 w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 text-sm text-neutral-300 outline-none transition-colors focus:border-white/[0.12] disabled:opacity-50";
@@ -95,7 +97,7 @@ export default function RentForm({
 }: Props) {
   return (
     <>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <label className="block">
           <span className="mb-1.5 block text-xs text-neutral-500">
             Inicio de alquiler
@@ -146,6 +148,59 @@ export default function RentForm({
             className={RENT_FIELD}
           />
         </label>
+
+        <div className="block">
+          <span className="mb-1 text-[10px] uppercase tracking-wider text-neutral-600">
+            Comisión inmobiliaria
+          </span>
+          <label className="mb-2 flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3">
+            <input
+              data-tauri-no-drag=""
+              type="checkbox"
+              checked={state.withAgencyCommission}
+              onChange={(e) =>
+                onUpdateConfig({ withAgencyCommission: e.target.checked })
+              }
+              disabled={locked}
+              className="rounded border-white/20"
+            />
+            <span className="text-sm text-neutral-400">Aplica comisión</span>
+          </label>
+          {state.withAgencyCommission && (
+            <div className="relative">
+              <input
+                data-tauri-no-drag=""
+                type="text"
+                inputMode="decimal"
+                value={formatPercentDisplay(state.agencyCommissionPercent)}
+                onChange={(e) => {
+                  const raw = sanitizePercentTyping(e.target.value);
+                  if (raw === "") {
+                    onUpdateConfig({ agencyCommissionPercent: 0 });
+                    return;
+                  }
+                  const n = Number(raw.replace(",", "."));
+                  if (Number.isFinite(n)) {
+                    onUpdateConfig({
+                      agencyCommissionPercent: clampAgencyCommissionPercent(n),
+                    });
+                  }
+                }}
+                disabled={locked}
+                placeholder="5"
+                className={`${RENT_FIELD} pr-8`}
+              />
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-neutral-600">
+                %
+              </span>
+            </div>
+          )}
+          {state.withAgencyCommission && (
+            <span className="mt-1 block text-[10px] leading-snug text-neutral-600">
+              Se suma al total de cada mes sobre el alquiler vigente.
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-3">
