@@ -101,3 +101,23 @@ export function formatArsAmount(
 export function formatArs(n: number): string {
   return formatArsAmount(n);
 }
+
+/** Texto fijo cuando los montos están ocultos (modo privacidad). */
+export const MASKED_ARS = "$ ***";
+
+export function formatArsDisplay(
+  amount: number,
+  hidden: boolean,
+): string {
+  return hidden ? MASKED_ARS : formatArs(amount);
+}
+
+export function formatTxnAmountDisplay(
+  type: "in" | "out" | "transfer",
+  amount: number,
+  hidden: boolean,
+): string {
+  if (hidden) return "***";
+  if (type === "transfer") return formatArs(amount);
+  return `${type === "in" ? "+" : "−"}${formatArs(amount)}`;
+}

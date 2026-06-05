@@ -9,6 +9,8 @@ import {
   AlertCircle,
   Settings,
   HelpCircle,
+  Eye,
+  EyeOff,
   X,
 } from "lucide-react";
 import type { Wallet, Transaction } from "../data/state";
@@ -18,7 +20,10 @@ import { parseFinanceCommand } from "../lib/parseFinanceCommand";
 import { revertTransactionBalances } from "../lib/revertTransactionBalances";
 import { whenLocked } from "../lib/whenLocked";
 import CurrencyInput from "./CurrencyInput";
-import { formatArs } from "../lib/currencyUtils";
+import {
+  formatArsDisplay,
+  formatTxnAmountDisplay,
+} from "../lib/currencyUtils";
 import {
   sanitizeFinanceCommandTyping,
   sanitizeLabelTyping,
@@ -160,6 +165,10 @@ export default function FinancePanel({ locked = false }: Props) {
   const [showHelp, setShowHelp] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>("all");
   const [walletFilter, setWalletFilter] = useState<string | null>(null);
+  const [amountsHidden, setAmountsHidden] = usePersistedState<boolean>(
+    "finance_amounts_hidden",
+    false,
+  );
 
   const parseResult = useMemo(
     () => (draft.trim() ? parseFinanceCommand(draft, wallets) : null),
@@ -296,19 +305,45 @@ export default function FinancePanel({ locked = false }: Props) {
           <h2 className="text-sm font-medium tracking-wide text-neutral-400 uppercase">
             Billeteras
           </h2>
-          {!locked && (
+          <div className="ml-auto flex items-center gap-0.5">
             <button
               type="button"
-              onClick={() => setShowConfig((v) => !v)}
-              className={`no-drag cursor-pointer ml-auto rounded-md p-1 transition-colors ${
-                showConfig
+              onClick={() => setAmountsHidden((v) => !v)}
+              className={`no-drag cursor-pointer rounded-md p-1 transition-colors ${
+                amountsHidden
                   ? "bg-white/[0.08] text-neutral-300"
                   : "text-neutral-600 hover:bg-white/[0.06] hover:text-neutral-400"
               }`}
+              title={
+                amountsHidden ? "Mostrar montos" : "Ocultar montos"
+              }
+              aria-label={
+                amountsHidden ? "Mostrar montos" : "Ocultar montos"
+              }
+              aria-pressed={amountsHidden}
             >
-              <Settings className="h-3.5 w-3.5" />
+              {amountsHidden ? (
+                <EyeOff className="h-3.5 w-3.5" />
+              ) : (
+                <Eye className="h-3.5 w-3.5" />
+              )}
             </button>
-          )}
+            {!locked && (
+              <button
+                type="button"
+                onClick={() => setShowConfig((v) => !v)}
+                className={`no-drag cursor-pointer rounded-md p-1 transition-colors ${
+                  showConfig
+                    ? "bg-white/[0.08] text-neutral-300"
+                    : "text-neutral-600 hover:bg-white/[0.06] hover:text-neutral-400"
+                }`}
+                title="Configurar billeteras"
+                aria-label="Configurar billeteras"
+              >
+                <Settings className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -328,12 +363,14 @@ export default function FinancePanel({ locked = false }: Props) {
                 </p>
                 <p
                   className={`mt-1 font-mono text-lg font-semibold tracking-tight ${whenLocked(locked)} ${
-                    w.balance >= 0
-                      ? "text-emerald-400/90"
-                      : "text-red-400/90"
+                    amountsHidden
+                      ? "text-neutral-500"
+                      : w.balance >= 0
+                        ? "text-emerald-400/90"
+                        : "text-red-400/90"
                   }`}
                 >
-                  {formatArs(w.balance)}
+                  {formatArsDisplay(w.balance, amountsHidden)}
                 </p>
                 <button
                   type="button"
@@ -573,16 +610,16 @@ export default function FinancePanel({ locked = false }: Props) {
 
                 <span
                   className={`shrink-0 font-mono text-sm font-medium ${whenLocked(locked)} ${
-                    t.type === "in"
-                      ? "text-emerald-400/90"
-                      : t.type === "out"
-                        ? "text-red-400/90"
-                        : "text-violet-400/90"
+                    amountsHidden
+                      ? "text-neutral-500"
+                      : t.type === "in"
+                        ? "text-emerald-400/90"
+                        : t.type === "out"
+                          ? "text-red-400/90"
+                          : "text-violet-400/90"
                   }`}
                 >
-                  {t.type === "transfer"
-                    ? formatArs(t.amount)
-                    : `${t.type === "in" ? "+" : "−"}${formatArs(t.amount)}`}
+                  {formatTxnAmountDisplay(t.type, t.amount, amountsHidden)}
                 </span>
 
                 {!locked && (
